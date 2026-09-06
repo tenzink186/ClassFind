@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(
@@ -28,11 +30,28 @@ fun LoginScreen(
     onSignUpClick: () -> Unit
 ) {
 
+    // Firebase Authentication
+    val auth = remember {
+        FirebaseAuth.getInstance()
+    }
+
     var emailOrStudentId by remember {
         mutableStateOf("")
     }
 
     var password by remember {
+        mutableStateOf("")
+    }
+
+    var errorMessage by remember {
+        mutableStateOf("")
+    }
+
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+
+    var resetMessage by remember {
         mutableStateOf("")
     }
 
@@ -73,12 +92,15 @@ fun LoginScreen(
             value = emailOrStudentId,
             onValueChange = {
                 emailOrStudentId = it
+                errorMessage = ""
+                resetMessage = ""
             },
             modifier = Modifier.fillMaxWidth(),
             label = {
                 Text("Email or Student ID")
             },
-            singleLine = true
+            singleLine = true,
+            enabled = !isLoading
         )
 
         Spacer(
@@ -89,13 +111,15 @@ fun LoginScreen(
             value = password,
             onValueChange = {
                 password = it
+                errorMessage = ""
             },
             modifier = Modifier.fillMaxWidth(),
             label = {
                 Text("Password")
             },
             visualTransformation = PasswordVisualTransformation(),
-            singleLine = true
+            singleLine = true,
+            enabled = !isLoading
         )
 
         Spacer(
@@ -104,11 +128,76 @@ fun LoginScreen(
 
         TextButton(
             onClick = {
-                // Forgot password functionality
-                // will be connected to Firebase later
-            }
+
+                errorMessage = ""
+                resetMessage = ""
+
+                if (emailOrStudentId.isBlank()) {
+                    errorMessage = "Please enter your email."
+                    return@TextButton
+                }
+
+                if (!emailOrStudentId.contains("@")) {
+                    errorMessage =
+                        "Student ID login will be added after Firestore setup."
+                    return@TextButton
+                }
+
+                if (password.isBlank()) {
+                    errorMessage = "Please enter your password."
+                    return@TextButton
+                }
+
+                isLoading = true
+
+                auth.sendPasswordResetEmail(
+                    emailOrStudentId.trim()
+                )
+                    .addOnSuccessListener {
+
+                        isLoading = false
+
+                        resetMessage =
+                            "Password reset email sent. Check your email."
+                    }
+                    .addOnFailureListener { exception ->
+
+                        isLoading = false
+
+                        errorMessage =
+                            exception.message
+                                ?: "Could not send password reset email."
+                    }
+            },
+            enabled = !isLoading
         ) {
             Text("Forgot Password?")
+        }
+
+        if (resetMessage.isNotEmpty()) {
+
+            Text(
+                text = resetMessage,
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+        }
+
+        if (errorMessage.isNotEmpty()) {
+
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
         }
 
         Spacer(
@@ -117,16 +206,66 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                if (
-                    emailOrStudentId.isNotBlank() &&
-                    password.isNotBlank()
-                ) {
-                    onLoginSuccess()
+
+                errorMessage = ""
+                resetMessage = ""
+
+                if (emailOrStudentId.isBlank()) {
+                    errorMessage = "Please enter your email."
+                    return@Button
                 }
+
+                if (password.isBlank()) {
+                    errorMessage = "Please enter your password."
+                    return@Button
+                }
+
+                // Student ID login will be connected later
+                if (!emailOrStudentId.contains("@")) {
+                    errorMessage =
+                        "Please use your email for now. Student ID login will be added with Firestore."
+                    return@Button
+                }
+
+                isLoading = true
+
+                // Firebase Email/Password Login
+                auth.signInWithEmailAndPassword(
+                    emailOrStudentId.trim(),
+                    password
+                )
+                    .addOnSuccessListener {
+
+                        isLoading = false
+
+                        // Login successful
+                        onLoginSuccess()
+                    }
+                    .addOnFailureListener { exception ->
+
+                        isLoading = false
+
+                        errorMessage =
+                            exception.message
+                                ?: "Login failed."
+                    }
+
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
-            Text("Sign In")
+
+            if (isLoading) {
+
+                CircularProgressIndicator(
+                    modifier = Modifier.height(20.dp),
+                    strokeWidth = 2.dp
+                )
+
+            } else {
+
+                Text("Sign In")
+            }
         }
 
         Spacer(
@@ -135,7 +274,8 @@ fun LoginScreen(
 
         TextButton(
             onClick = onSignUpClick,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
             Text("Don't have an account? Sign Up")
         }

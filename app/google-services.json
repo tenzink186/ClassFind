@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "495855967485",
+    "project_id": "classfind-e59ae",
+    "storage_bucket": "classfind-e59ae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:495855967485:android:061c40efe4bcb51193f294",
+        "android_client_info": {
+          "package_name": "com.example.classfind"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8sCp5xejRozfllX67cpC_b4GGB-oK_7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -56,17 +57,17 @@ dependencies {
 
     // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))
-
     implementation(libs.androidx.compose.ui)
-
     implementation(libs.androidx.compose.ui.graphics)
-
     implementation(libs.androidx.compose.ui.tooling.preview)
-
     implementation(libs.androidx.compose.material3)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
 
     // Location / GPS
     implementation(libs.play.services.location)
@@ -76,15 +77,11 @@ dependencies {
 
     // Android testing
     androidTestImplementation(platform(libs.androidx.compose.bom))
-
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-
     androidTestImplementation(libs.androidx.espresso.core)
-
     androidTestImplementation(libs.androidx.junit)
 
     // Debug
     debugImplementation(libs.androidx.compose.ui.tooling)
-
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

@@ -12,15 +12,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    onFindClassroomClick: (String) -> Unit,
+    onCampusMapClick: () -> Unit
+) {
 
     var searchText by remember {
         mutableStateOf("")
@@ -68,7 +71,7 @@ fun HomeScreen() {
 
         Button(
             onClick = {
-                // Search functionality will be added later
+                onFindClassroomClick(searchText)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -80,9 +83,7 @@ fun HomeScreen() {
         )
 
         Button(
-            onClick = {
-                // Campus map will be added later
-            },
+            onClick = onCampusMapClick,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Campus Map")
