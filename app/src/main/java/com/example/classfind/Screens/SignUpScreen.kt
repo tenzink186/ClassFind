@@ -46,6 +46,10 @@ fun SignUpScreen(
         mutableStateOf("")
     }
 
+    var major by remember {
+        mutableStateOf("")
+    }
+
     var email by remember {
         mutableStateOf("")
     }
@@ -103,6 +107,23 @@ fun SignUpScreen(
             modifier = Modifier.fillMaxWidth(),
             label = {
                 Text("Student ID")
+            },
+            singleLine = true,
+            enabled = !isLoading
+        )
+
+        Spacer(
+            modifier = Modifier.height(12.dp)
+        )
+
+        OutlinedTextField(
+            value = major,
+            onValueChange = {
+                major = it
+            },
+            modifier = Modifier.fillMaxWidth(),
+            label = {
+                Text("Course / Major")
             },
             singleLine = true,
             enabled = !isLoading
@@ -177,6 +198,12 @@ fun SignUpScreen(
                     return@Button
                 }
 
+                // Validate major
+                if (major.isBlank()) {
+                    errorMessage = "Please enter your course."
+                    return@Button
+                }
+
                 // Validate email
                 if (email.isBlank()) {
                     errorMessage = "Please enter your email."
@@ -221,6 +248,7 @@ fun SignUpScreen(
                         val studentData = hashMapOf(
                             "name" to name.trim(),
                             "studentId" to studentId.trim(),
+                            "major" to major.trim(),
                             "email" to email.trim(),
                             "uid" to uid
                         )
