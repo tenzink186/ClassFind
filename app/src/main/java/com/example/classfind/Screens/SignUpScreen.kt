@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun SignUpScreen(
@@ -29,9 +30,12 @@ fun SignUpScreen(
     onBackToLogin: () -> Unit
 ) {
 
-    // Firebase Authentication
     val auth = remember {
         FirebaseAuth.getInstance()
+    }
+
+    val firestore = remember {
+        FirebaseFirestore.getInstance()
     }
 
     var name by remember {
@@ -143,8 +147,8 @@ fun SignUpScreen(
             modifier = Modifier.height(12.dp)
         )
 
-        // Display Firebase error
         if (errorMessage.isNotEmpty()) {
+
             Text(
                 text = errorMessage,
                 color = MaterialTheme.colorScheme.error,
@@ -156,61 +160,95 @@ fun SignUpScreen(
             )
         }
 
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
         Button(
             onClick = {
 
-                // Clear previous error
                 errorMessage = ""
 
-                // Validate fields
+                // Validate name
                 if (name.isBlank()) {
                     errorMessage = "Please enter your name."
                     return@Button
                 }
 
+                // Validate student ID
                 if (studentId.isBlank()) {
                     errorMessage = "Please enter your student ID."
                     return@Button
                 }
 
+                // Validate email
                 if (email.isBlank()) {
                     errorMessage = "Please enter your email."
                     return@Button
                 }
 
+                // Validate password
                 if (password.isBlank()) {
                     errorMessage = "Please enter a password."
                     return@Button
                 }
 
                 if (password.length < 6) {
-                    errorMessage = "Password must be at least 6 characters."
+                    errorMessage =
+                        "Password must be at least 6 characters."
                     return@Button
                 }
 
-                // Start Firebase registration
                 isLoading = true
 
+                // Create Firebase Authentication account
                 auth.createUserWithEmailAndPassword(
                     email.trim(),
                     password
                 )
                     .addOnSuccessListener {
 
-                        isLoading = false
+                        val currentUser = auth.currentUser
 
-                        // Firebase account was successfully created
-                        onSignUpSuccess()
+                        if (currentUser == null) {
+
+                            isLoading = false
+                            errorMessage =
+                                "Account was created, but user information could not be found."
+
+                            return@addOnSuccessListener
+                        }
+
+                        val uid = currentUser.uid
+
+                        // Student information
+                        val studentData = hashMapOf(
+                            "name" to name.trim(),
+                            "studentId" to studentId.trim(),
+                            "email" to email.trim(),
+                            "uid" to uid
+                        )
+
+                        // Save student information in Firestore
+                        firestore
+                            .collection("students")
+                            .document(uid)
+                            .set(studentData)
+                            .addOnSuccessListener {
+
+                                isLoading = false
+
+                                onSignUpSuccess()
+                            }
+                            .addOnFailureListener { exception ->
+
+                                isLoading = false
+
+                                errorMessage =
+                                    exception.message
+                                        ?: "Account created, but student information could not be saved."
+                            }
                     }
                     .addOnFailureListener { exception ->
 
                         isLoading = false
 
-                        // Display Firebase error
                         errorMessage =
                             exception.message
                                 ?: "Account creation failed."
@@ -242,7 +280,10 @@ fun SignUpScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading
         ) {
-            Text("Already have an account? Sign In")
+
+            Text(
+                "Already have an account? Sign In"
+            )
         }
     }
 }

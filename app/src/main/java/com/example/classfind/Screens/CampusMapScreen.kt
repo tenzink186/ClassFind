@@ -1,5 +1,9 @@
 package com.example.classfind.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,16 +21,128 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.compose.ui.platform.LocalContext
+import com.example.classfind.getCurrentLocation
 
 @Composable
 fun CampusMapScreen(
     selectedClassroom: Classroom?,
     onBackClick: () -> Unit
 ) {
+
+    val context = LocalContext.current
+
+    var latitude by remember {
+        mutableStateOf<Double?>(null)
+    }
+
+    var longitude by remember {
+        mutableStateOf<Double?>(null)
+    }
+
+    var locationMessage by remember {
+        mutableStateOf("Location not detected yet.")
+    }
+
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+
+    val locationPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+
+            val fineLocation =
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+
+            val coarseLocation =
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+            if (fineLocation || coarseLocation) {
+
+                isLoading = true
+                locationMessage = "Getting your current location..."
+
+                getCurrentLocation(
+                    context = context,
+                    onLocationReceived = { lat, lon ->
+
+                        latitude = lat
+                        longitude = lon
+
+                        locationMessage = "Location found!"
+                        isLoading = false
+                    },
+                    onError = { error ->
+
+                        locationMessage = error
+                        isLoading = false
+                    }
+                )
+
+            } else {
+
+                locationMessage =
+                    "Location permission was denied."
+            }
+        }
+
+    fun getLocation() {
+
+        val fineLocationGranted =
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+        val coarseLocationGranted =
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+        if (fineLocationGranted || coarseLocationGranted) {
+
+            isLoading = true
+            locationMessage = "Getting your current location..."
+
+            getCurrentLocation(
+                context = context,
+                onLocationReceived = { lat, lon ->
+
+                    latitude = lat
+                    longitude = lon
+
+                    locationMessage = "Location found!"
+                    isLoading = false
+                },
+                onError = { error ->
+
+                    locationMessage = error
+                    isLoading = false
+                }
+            )
+
+        } else {
+
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -72,7 +188,6 @@ fun CampusMapScreen(
                 modifier = Modifier.align(Alignment.Center)
             )
 
-            // Academic Block
             MapBuilding(
                 name = "Academic Block",
                 modifier = Modifier
@@ -80,7 +195,6 @@ fun CampusMapScreen(
                     .padding(20.dp)
             )
 
-            // IT Building
             MapBuilding(
                 name = "IT Building",
                 modifier = Modifier
@@ -88,7 +202,6 @@ fun CampusMapScreen(
                     .padding(20.dp)
             )
 
-            // FabLab
             MapBuilding(
                 name = "FabLab",
                 modifier = Modifier
@@ -96,7 +209,6 @@ fun CampusMapScreen(
                     .padding(20.dp)
             )
 
-            // Architecture Building
             MapBuilding(
                 name = "Architecture Building",
                 modifier = Modifier
@@ -104,7 +216,7 @@ fun CampusMapScreen(
                     .padding(20.dp)
             )
 
-            // Current location
+            // Current location marker
             Column(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
@@ -129,7 +241,82 @@ fun CampusMapScreen(
         }
 
         Spacer(
-            modifier = Modifier.height(16.dp)
+            modifier = Modifier.height(12.dp)
+        )
+
+        // GPS Location Button
+        Button(
+            onClick = {
+                getLocation()
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
+        ) {
+
+            Text(
+                text = if (isLoading) {
+                    "Getting Location..."
+                } else {
+                    "📍 Get My Current Location"
+                }
+            )
+        }
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        // Location information
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+
+                Text(
+                    text = "Current Location",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(
+                    modifier = Modifier.height(6.dp)
+                )
+
+                if (latitude != null && longitude != null) {
+
+                    Text(
+                        text = "Latitude: %.6f".format(latitude),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Text(
+                        text = "Longitude: %.6f".format(longitude),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(4.dp)
+                    )
+
+                    Text(
+                        text = locationMessage,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                } else {
+
+                    Text(
+                        text = locationMessage,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.height(12.dp)
         )
 
         if (selectedClassroom != null) {
@@ -177,6 +364,7 @@ fun CampusMapScreen(
             onClick = onBackClick,
             modifier = Modifier.fillMaxWidth()
         ) {
+
             Text("Back")
         }
     }

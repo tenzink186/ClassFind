@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -37,66 +38,22 @@ fun SearchScreen(
     onClassroomClick: (Classroom) -> Unit,
     onBackClick: () -> Unit
 ) {
-
     var searchText by remember {
         mutableStateOf("")
     }
 
     val classrooms = listOf(
-        Classroom(
-            roomNumber = "CR 01",
-            building = "IT Building",
-            floor = "1st Floor",
-            capacity = 60,
-            type = "Lecture Room"
-        ),
-        Classroom(
-            roomNumber = "CR 02",
-            building = "IT Building",
-            floor = "1st Floor",
-            capacity = 60,
-            type = "Lecture Room"
-        ),
-        Classroom(
-            roomNumber = "CR 03",
-            building = "IT Building",
-            floor = "1st Floor",
-            capacity = 60,
-            type = "Lecture Room"
-        ),
-        Classroom(
-            roomNumber = "CR 04",
-            building = "IT Building",
-            floor = "2nd Floor",
-            capacity = 50,
-            type = "Lecture Room"
-        ),
-        Classroom(
-            roomNumber = "IT 06",
-            building = "IT Building",
-            floor = "2nd Floor",
-            capacity = 40,
-            type = "Computer Lab"
-        ),
-        Classroom(
-            roomNumber = "CR 05",
-            building = "Academic Block",
-            floor = "1st Floor",
-            capacity = 50,
-            type = "Lecture Room"
-        )
+        Classroom("CR 01", "IT Building", "1st Floor", 60, "Lecture Room"),
+        Classroom("CR 02", "IT Building", "1st Floor", 60, "Lecture Room"),
+        Classroom("CR 03", "IT Building", "1st Floor", 60, "Lecture Room"),
+        Classroom("CR 04", "IT Building", "2nd Floor", 50, "Lecture Room"),
+        Classroom("IT 06", "IT Building", "2nd Floor", 40, "Computer Lab"),
+        Classroom("CR 05", "Academic Block", "1st Floor", 50, "Lecture Room")
     )
 
     val filteredClassrooms = classrooms.filter { classroom ->
-
-        classroom.roomNumber.contains(
-            searchText,
-            ignoreCase = true
-        ) ||
-                classroom.building.contains(
-                    searchText,
-                    ignoreCase = true
-                )
+        classroom.roomNumber.contains(searchText, ignoreCase = true) ||
+                classroom.building.contains(searchText, ignoreCase = true)
     }
 
     Column(
@@ -110,9 +67,7 @@ fun SearchScreen(
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Spacer(
-            modifier = Modifier.height(16.dp)
-        )
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = searchText,
@@ -126,24 +81,21 @@ fun SearchScreen(
             singleLine = true
         )
 
-        Spacer(
-            modifier = Modifier.height(16.dp)
-        )
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = "${filteredClassrooms.size} results",
             style = MaterialTheme.typography.titleMedium
         )
 
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
+        Spacer(modifier = Modifier.height(12.dp))
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
             items(filteredClassrooms) { classroom ->
 
                 ClassroomSearchItem(
@@ -154,6 +106,15 @@ fun SearchScreen(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = onBackClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Back to Home")
+        }
     }
 }
 
@@ -162,7 +123,6 @@ fun ClassroomSearchItem(
     classroom: Classroom,
     onClick: () -> Unit
 ) {
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -186,21 +146,13 @@ fun ClassroomSearchItem(
                     style = MaterialTheme.typography.titleLarge
                 )
 
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
+                Spacer(modifier = Modifier.height(4.dp))
 
-                Text(
-                    text = classroom.building
-                )
+                Text(text = classroom.building)
 
-                Text(
-                    text = classroom.floor
-                )
+                Text(text = classroom.floor)
 
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = "${classroom.capacity} seats • ${classroom.type}"
