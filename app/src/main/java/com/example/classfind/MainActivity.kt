@@ -116,7 +116,7 @@ fun ClassFindApp() {
 
                     SignUpScreen(
                         onSignUpSuccess = {
-                            currentScreen = "home"
+                            currentScreen = "login"
                         },
                         onBackToLogin = {
                             currentScreen = "login"

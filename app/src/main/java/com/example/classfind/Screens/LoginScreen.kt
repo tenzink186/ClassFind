@@ -58,9 +58,9 @@ fun LoginScreen(
                 isLoading = false
                 onLoginSuccess()
             }
-            .addOnFailureListener { exception ->
+            .addOnFailureListener {
                 isLoading = false
-                errorMessage = exception.message ?: "Login failed. Check your password."
+                errorMessage = "Login failed"
             }
     }
 
@@ -204,7 +204,7 @@ fun LoginScreen(
                         .addOnSuccessListener { querySnapshot ->
                             if (querySnapshot.isEmpty) {
                                 isLoading = false
-                                errorMessage = "Student ID '$input' not found in database."
+                                errorMessage = "Login failed"
                             } else {
                                 val doc = querySnapshot.documents[0]
                                 val email = doc.getString("email")
@@ -212,13 +212,13 @@ fun LoginScreen(
                                     performLogin(email)
                                 } else {
                                     isLoading = false
-                                    errorMessage = "Error: Email missing for this ID."
+                                    errorMessage = "Login failed"
                                 }
                             }
                         }
                         .addOnFailureListener { exception ->
                             isLoading = false
-                            errorMessage = "Search failed: ${exception.localizedMessage}"
+                            errorMessage = "Login failed"
                         }
                 }
             },
