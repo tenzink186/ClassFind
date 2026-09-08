@@ -339,6 +339,7 @@ fun LocationPill(text: String, isSelected: Boolean = false, onClick: () -> Unit 
 @Composable
 fun BuildingView(buildingName: String, onBackClick: () -> Unit) {
     var selectedFloor by remember { mutableStateOf("1F") }
+    var selectedRoomName by remember { mutableStateOf<String?>(null) }
 
     val floorOptions = when (buildingName) {
         "IT Building" -> listOf("1F", "2F", "3F")
@@ -401,7 +402,12 @@ fun BuildingView(buildingName: String, onBackClick: () -> Unit) {
                 rooms.chunked(2).forEach { rowRooms ->
                     Row(modifier = Modifier.fillMaxWidth().height(100.dp).padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         rowRooms.forEach { roomName ->
-                            RoomBox(roomName, Modifier.weight(1f))
+                            RoomBox(
+                                name = roomName, 
+                                isSelected = selectedRoomName == roomName,
+                                onClick = { selectedRoomName = if (selectedRoomName == roomName) null else roomName },
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                         if (rowRooms.size == 1) Spacer(Modifier.weight(1f))
                     }
@@ -416,23 +422,33 @@ fun BuildingView(buildingName: String, onBackClick: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            LocationPill("You are here", isSelected = true)
-            LocationPill("Path")
+            LocationPill(if (selectedRoomName != null) "You chose here" else "You are here", isSelected = true)
+            if (selectedRoomName != null) {
+                LocationPill(selectedRoomName!!)
+            } else {
+                LocationPill("Path")
+            }
         }
     }
 }
 
 @Composable
-fun RoomBox(name: String, modifier: Modifier = Modifier) {
+fun RoomBox(name: String, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxHeight()
             .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
-            .background(if (name.contains("05") || name.contains("06")) Color(0xFF6200EE) else Color.Transparent, RoundedCornerShape(12.dp))
+            .background(if (isSelected) Color(0xFF6200EE) else Color.Transparent, RoundedCornerShape(12.dp))
+            .clickable { onClick() }
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (name.contains("05") || name.contains("06")) Color.White else Color.Black)
+        Text(
+            text = name, 
+            fontSize = 14.sp, 
+            fontWeight = FontWeight.Bold, 
+            color = if (isSelected) Color.White else Color.Black
+        )
     }
 }
 
